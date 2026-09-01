@@ -16,7 +16,7 @@ public class QuitCommand implements Command {
     }
 
     @Override
-    public void execute(AppContext context) {
+    public void execute(AppContext context, String argument) {
         context.stop();
     }
 }

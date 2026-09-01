@@ -11,5 +11,12 @@ public interface Command {
 
     String getDescription();
 
-    void execute(AppContext context);
+    /**
+     * Führt den Befehl aus.
+     *
+     * @param context  Zustand der Anwendung
+     * @param argument alles, was hinter dem Befehlsnamen eingegeben wurde
+     *                 (z.B. ein Dateipfad); leer, wenn kein Argument angegeben wurde
+     */
+    void execute(AppContext context, String argument);
 }

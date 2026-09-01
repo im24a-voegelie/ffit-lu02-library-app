@@ -24,7 +24,7 @@ public class HelpCommand implements Command {
     }
 
     @Override
-    public void execute(AppContext context) {
+    public void execute(AppContext context, String argument) {
         System.out.println("Verfügbare Befehle:");
         for (Command command : registry.getCommands()) {
             System.out.println("  " + command.getName() + " - " + command.getDescription());

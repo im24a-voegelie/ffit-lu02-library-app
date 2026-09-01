@@ -32,7 +32,7 @@ public class ListBooksCommand implements Command {
     }
 
     @Override
-    public void execute(AppContext context) {
+    public void execute(AppContext context, String argument) {
         try {
             List<Book> books = bookRepository.findAll();
             for (Book book : books) {

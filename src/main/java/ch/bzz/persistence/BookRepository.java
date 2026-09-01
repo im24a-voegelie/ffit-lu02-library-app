@@ -10,12 +10,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Liest Bücher aus der Datenbank.
+ * Liest und schreibt Bücher in der Datenbank.
  */
 public class BookRepository {
 
     private static final String SELECT_ALL =
             "SELECT id, isbn, title, author, publication_year FROM books ORDER BY id";
+
+    private static final String UPSERT =
+            "INSERT INTO books (id, isbn, title, author, publication_year) "
+                    + "VALUES (?, ?, ?, ?, ?) "
+                    + "ON CONFLICT (id) DO UPDATE SET "
+                    + "isbn = EXCLUDED.isbn, "
+                    + "title = EXCLUDED.title, "
+                    + "author = EXCLUDED.author, "
+                    + "publication_year = EXCLUDED.publication_year";
 
     /**
      * Baut eine Datenbankverbindung auf, liest alle Bücher und erstellt pro
@@ -41,5 +50,26 @@ public class BookRepository {
         }
 
         return books;
+    }
+
+    /**
+     * Speichert alle übergebenen Bücher. Existiert bereits ein Eintrag mit
+     * derselben id, wird dieser überschrieben (damit Korrekturen importiert
+     * werden können).
+     */
+    public void saveAll(List<Book> books) throws SQLException {
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement(UPSERT)) {
+
+            for (Book book : books) {
+                statement.setInt(1, book.getId());
+                statement.setString(2, book.getIsbn());
+                statement.setString(3, book.getTitle());
+                statement.setString(4, book.getAuthor());
+                statement.setInt(5, book.getYear());
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        }
     }
 }
