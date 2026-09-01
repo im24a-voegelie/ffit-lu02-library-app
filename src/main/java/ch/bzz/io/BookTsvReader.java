@@ -43,14 +43,20 @@ public class BookTsvReader {
             throw new IllegalArgumentException("Zeile hat zu wenige Spalten: " + line);
         }
 
-        int id = Integer.parseInt(fields[0].trim());
         String isbn = fields[1].trim();
         String title = fields[2].trim();
         String author = fields[3].trim();
-        int year = fields.length > 4 && !fields[4].isBlank()
-                ? Integer.parseInt(fields[4].trim())
-                : 0;
 
-        return new Book(id, isbn, title, author, year);
+        try {
+            int id = Integer.parseInt(fields[0].trim());
+            int year = fields.length > 4 && !fields[4].isBlank()
+                    ? Integer.parseInt(fields[4].trim())
+                    : 0;
+            return new Book(id, isbn, title, author, year);
+        } catch (NumberFormatException e) {
+            // NumberFormatException wrappen; der Stacktrace wird erst beim
+            // endgültigen Fangen (ImportBooksCommand) ausgegeben.
+            throw new IllegalArgumentException("Zeile enthält eine ungültige Zahl: " + line, e);
+        }
     }
 }

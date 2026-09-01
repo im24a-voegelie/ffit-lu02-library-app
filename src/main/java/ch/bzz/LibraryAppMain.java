@@ -8,9 +8,14 @@ import ch.bzz.command.ImportBooksCommand;
 import ch.bzz.command.ListBooksCommand;
 import ch.bzz.command.QuitCommand;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Scanner;
 
 public class LibraryAppMain {
+
+    private static final Logger log = LoggerFactory.getLogger(LibraryAppMain.class);
 
     public static void main(String[] args) {
         CommandRegistry registry = new CommandRegistry();
@@ -21,8 +26,9 @@ public class LibraryAppMain {
 
         AppContext context = new AppContext();
         Scanner scanner = new Scanner(System.in);
+        log.info("Bibliotheksapplikation gestartet");
 
-        while (context.isRunning()) {
+        while (context.isRunning() && scanner.hasNextLine()) {
             System.out.print("> ");
             String input = scanner.nextLine().trim();
             if (input.isEmpty()) {
@@ -35,6 +41,7 @@ public class LibraryAppMain {
 
             Command command = registry.find(name);
             if (command == null) {
+                log.debug("Unbekannter Befehl: {}", input);
                 System.out.println("Die Eingabe wurde nicht als Befehl erkannt: " + input);
             } else {
                 command.execute(context, argument);
@@ -42,5 +49,6 @@ public class LibraryAppMain {
         }
 
         scanner.close();
+        log.info("Bibliotheksapplikation beendet");
     }
 }
