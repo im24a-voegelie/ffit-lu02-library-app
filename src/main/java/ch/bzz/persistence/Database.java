@@ -1,41 +1,25 @@
 package ch.bzz.persistence;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import ch.bzz.config.Config;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Properties;
 
 /**
- * Baut Datenbankverbindungen anhand der Konfiguration in {@code config.properties} auf.
- * <p>
- * Die Datei liegt im Wurzelverzeichnis des Projekts, wird nicht eingecheckt und
- * enthält die Schlüssel {@code DB_URL}, {@code DB_USER} und {@code DB_PASSWORD}.
+ * Einzige Stelle im Code, an der eine Datenbankverbindung aufgebaut wird.
+ * Die Zugangsdaten stammen aus {@link Config} ({@code config.properties}).
  */
 public final class Database {
 
-    private static final String CONFIG_FILE = "config.properties";
+    private static final String URL = Config.get("DB_URL");
+    private static final String USER = Config.get("DB_USER");
+    private static final String PASSWORD = Config.get("DB_PASSWORD");
 
     private Database() {
     }
 
     public static Connection getConnection() throws SQLException {
-        Properties config = loadConfig();
-        return DriverManager.getConnection(
-                config.getProperty("DB_URL"),
-                config.getProperty("DB_USER"),
-                config.getProperty("DB_PASSWORD"));
-    }
-
-    private static Properties loadConfig() throws SQLException {
-        Properties properties = new Properties();
-        try (InputStream in = new FileInputStream(CONFIG_FILE)) {
-            properties.load(in);
-        } catch (IOException e) {
-            throw new SQLException(CONFIG_FILE + " konnte nicht gelesen werden", e);
-        }
-        return properties;
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }
