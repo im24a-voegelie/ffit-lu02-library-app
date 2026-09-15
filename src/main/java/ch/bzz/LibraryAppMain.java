@@ -3,6 +3,7 @@ package ch.bzz;
 import ch.bzz.command.AppContext;
 import ch.bzz.command.Command;
 import ch.bzz.command.CommandRegistry;
+import ch.bzz.command.CreateUserCommand;
 import ch.bzz.command.HelpCommand;
 import ch.bzz.command.ImportBooksCommand;
 import ch.bzz.command.ListBooksCommand;
@@ -22,6 +23,7 @@ public class LibraryAppMain {
         registry.register(new HelpCommand(registry));
         registry.register(new ListBooksCommand());
         registry.register(new ImportBooksCommand());
+        registry.register(new CreateUserCommand());
         registry.register(new QuitCommand());
 
         AppContext context = new AppContext();

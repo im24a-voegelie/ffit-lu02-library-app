@@ -1,5 +1,14 @@
 package ch.bzz;
 
+import ch.bzz.config.Config;
+import ch.bzz.model.User;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -12,6 +21,20 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LibraryAppMainTest {
+
+    private static EntityManagerFactory emf;
+
+    @BeforeAll
+    static void setUpEntityManagerFactory() {
+        emf = Persistence.createEntityManagerFactory("localPU", Config.getJpaProperties());
+    }
+
+    @AfterAll
+    static void tearDownEntityManagerFactory() {
+        if (emf != null) {
+            emf.close();
+        }
+    }
 
     @Test
     void testQuitEndsProgramWithoutError() {
@@ -51,6 +74,7 @@ class LibraryAppMainTest {
         assertTrue(consoleOutput.contains("quit"), "Output should contain 'quit'");
         assertTrue(consoleOutput.contains("listBooks"), "Output should contain 'listBooks'");
         assertTrue(consoleOutput.contains("importBooks"), "Output should contain 'importBooks'");
+        assertTrue(consoleOutput.contains("createUser"), "Output should contain 'createUser'");
     }
 
     @Test
@@ -129,6 +153,65 @@ class LibraryAppMainTest {
 
         var output = out.toString();
         assertFalse(output.isEmpty(), "Output should indicate that the file could not be found");
+    }
+
+
+    @Test
+    void testCreateUserCommandStoresUserWithHashedPassword() {
+        // Arrange
+        try (EntityManager em = emf.createEntityManager()) {
+            em.getTransaction().begin();
+            em.createQuery("DELETE FROM User u WHERE u.email = 'max.mustermann@example.com'").executeUpdate();
+            em.getTransaction().commit();
+        }
+
+        prepareStreams("createUser Max Mustermann 1990-05-21 max.mustermann@example.com geheim123\nquit\n");
+
+        // Act
+        LibraryAppMain.main(new String[]{});
+
+        // Assert
+        try (EntityManager em = emf.createEntityManager()) {
+            User user = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
+                    .setParameter("email", "max.mustermann@example.com")
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+
+            assertNotNull(user, "User should exist in database");
+            assertEquals("Max", user.getFirstname());
+            assertEquals("Mustermann", user.getLastname());
+            assertEquals("1990-05-21", user.getDateOfBirth().toString());
+            assertNotNull(user.getPasswordHash(), "PasswordHash should be set");
+            assertNotNull(user.getPasswordSalt(), "PasswordSalt should be set");
+            assertNotEquals("geheim123", user.getPasswordHash(), "PasswordHash should not be the plaintext password");
+        }
+    }
+
+    @Test
+    void testCreateUserCommandWithMissingArgumentsDoesNotThrow() {
+        // Arrange
+        var out = prepareStreams("createUser Max Mustermann\nquit\n");
+
+        // Act + Assert
+        assertDoesNotThrow(() -> LibraryAppMain.main(new String[]{}),
+                "Missing arguments should not throw an exception");
+
+        var output = out.toString();
+        assertFalse(output.isEmpty(), "Output should indicate that arguments are missing");
+    }
+
+    @Test
+    void testCreateUserCommandWithInvalidDateDoesNotThrow() {
+        // Arrange
+        var out = prepareStreams("createUser Max Mustermann NOTADATE max.mustermann@example.com geheim123\nquit\n");
+
+        // Act + Assert
+        assertDoesNotThrow(() -> LibraryAppMain.main(new String[]{}),
+                "Invalid date of birth should not throw an exception");
+
+        var output = out.toString();
+        assertFalse(output.isEmpty(), "Output should indicate that the date could not be parsed");
     }
 
 
