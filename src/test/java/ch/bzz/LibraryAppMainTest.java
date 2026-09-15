@@ -1,6 +1,7 @@
 package ch.bzz;
 
 import ch.bzz.config.Config;
+import ch.bzz.model.Book;
 import ch.bzz.model.User;
 
 import jakarta.persistence.EntityManager;
@@ -26,7 +27,14 @@ class LibraryAppMainTest {
 
     @BeforeAll
     static void setUpEntityManagerFactory() {
-        emf = Persistence.createEntityManagerFactory("localPU", Config.getJpaProperties());
+        emf = Persistence.createEntityManagerFactory("localPU", Config.getProperties());
+
+        try (EntityManager em = emf.createEntityManager()) {
+            em.getTransaction().begin();
+            em.merge(new Book(1, "978-0134685991", "Effective Java", "Joshua Bloch", 2018));
+            em.merge(new Book(2, "978-0596009205", "Head First Java", "Kathy Sierra, Bert Bates", 2005));
+            em.getTransaction().commit();
+        }
     }
 
     @AfterAll

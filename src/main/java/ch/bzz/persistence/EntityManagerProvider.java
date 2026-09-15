@@ -13,7 +13,7 @@ import jakarta.persistence.Persistence;
 public final class EntityManagerProvider {
 
     private static final EntityManagerFactory ENTITY_MANAGER_FACTORY =
-            Persistence.createEntityManagerFactory("localPU", Config.getJpaProperties());
+            Persistence.createEntityManagerFactory("localPU", Config.getProperties());
 
     private EntityManagerProvider() {
     }

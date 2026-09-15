@@ -6,7 +6,6 @@ import ch.bzz.persistence.BookRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -52,7 +51,7 @@ public class ListBooksCommand implements Command {
             for (Book book : books) {
                 System.out.println(book.getTitle());
             }
-        } catch (SQLException e) {
+        } catch (RuntimeException e) {
             log.error("Bücher konnten nicht aus der Datenbank geladen werden", e);
             System.out.println("Die Bücher konnten nicht geladen werden: " + e.getMessage());
         }

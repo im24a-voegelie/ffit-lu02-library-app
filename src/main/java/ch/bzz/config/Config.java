@@ -3,7 +3,6 @@ package ch.bzz.config;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -33,14 +32,11 @@ public final class Config {
     }
 
     /**
-     * Liefert die Datenbank-Zugangsdaten als JPA-Properties, um damit eine
-     * {@link jakarta.persistence.EntityManagerFactory} zu erzeugen.
+     * Liefert alle Konfigurationswerte, u.a. die {@code jakarta.persistence.jdbc.*}
+     * Properties, um damit eine {@link jakarta.persistence.EntityManagerFactory} zu erzeugen.
      */
-    public static Map<String, Object> getJpaProperties() {
-        return Map.of(
-                "jakarta.persistence.jdbc.url", get("DB_URL"),
-                "jakarta.persistence.jdbc.user", get("DB_USER"),
-                "jakarta.persistence.jdbc.password", get("DB_PASSWORD"));
+    public static Properties getProperties() {
+        return PROPERTIES;
     }
 
     private static Properties load() {

@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -67,9 +66,6 @@ public class ImportBooksCommand implements Command {
         } catch (IllegalArgumentException e) {
             log.error("Importdatei hat ein ungültiges Format: {}", path, e);
             System.out.println("Die Datei hat ein ungültiges Format: " + e.getMessage());
-        } catch (SQLException e) {
-            log.error("Bücher aus {} konnten nicht gespeichert werden", path, e);
-            System.out.println("Die Bücher konnten nicht gespeichert werden: " + e.getMessage());
         }
     }
 }
