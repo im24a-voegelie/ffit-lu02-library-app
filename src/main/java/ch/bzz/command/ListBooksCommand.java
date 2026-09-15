@@ -1,7 +1,7 @@
 package ch.bzz.command;
 
 import ch.bzz.model.Book;
-import ch.bzz.persistence.BookRepository;
+import ch.bzz.persistence.BookPersistor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,16 +15,6 @@ import java.util.List;
 public class ListBooksCommand implements Command {
 
     private static final Logger log = LoggerFactory.getLogger(ListBooksCommand.class);
-
-    private final BookRepository bookRepository;
-
-    public ListBooksCommand() {
-        this(new BookRepository());
-    }
-
-    public ListBooksCommand(BookRepository bookRepository) {
-        this.bookRepository = bookRepository;
-    }
 
     @Override
     public String getName() {
@@ -44,10 +34,10 @@ public class ListBooksCommand implements Command {
             return;
         }
 
-        try {
+        try (var bookPersistor = new BookPersistor()) {
             List<Book> books = (limit == null)
-                    ? bookRepository.findAll()
-                    : bookRepository.findAll(limit);
+                    ? bookPersistor.findAll()
+                    : bookPersistor.findAll(limit);
             for (Book book : books) {
                 System.out.println(book.getTitle());
             }

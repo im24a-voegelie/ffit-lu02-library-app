@@ -1,7 +1,7 @@
 package ch.bzz.command;
 
 import ch.bzz.model.User;
-import ch.bzz.persistence.UserRepository;
+import ch.bzz.persistence.UserPersistor;
 import ch.bzz.security.PasswordHandler;
 
 import org.slf4j.Logger;
@@ -20,16 +20,6 @@ import java.util.Base64;
 public class CreateUserCommand implements Command {
 
     private static final Logger log = LoggerFactory.getLogger(CreateUserCommand.class);
-
-    private final UserRepository userRepository;
-
-    public CreateUserCommand() {
-        this(new UserRepository());
-    }
-
-    public CreateUserCommand(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public String getName() {
@@ -64,7 +54,7 @@ public class CreateUserCommand implements Command {
             return;
         }
 
-        try {
+        try (var userPersistor = new UserPersistor()) {
             byte[] salt = PasswordHandler.generateSalt();
             byte[] hash = PasswordHandler.hashPassword(password, salt);
 
@@ -72,7 +62,7 @@ public class CreateUserCommand implements Command {
             String hashBase64 = Base64.getEncoder().encodeToString(hash);
 
             User user = new User(firstname, lastname, dateOfBirth, email, hashBase64, saltBase64);
-            userRepository.save(user);
+            userPersistor.save(user);
 
             log.info("Benutzer {} angelegt", email);
             System.out.println("Benutzer angelegt: " + firstname + " " + lastname + " <" + email + ">");

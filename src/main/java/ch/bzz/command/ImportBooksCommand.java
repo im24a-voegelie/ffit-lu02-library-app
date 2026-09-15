@@ -2,7 +2,7 @@ package ch.bzz.command;
 
 import ch.bzz.io.BookTsvReader;
 import ch.bzz.model.Book;
-import ch.bzz.persistence.BookRepository;
+import ch.bzz.persistence.BookPersistor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,15 +21,13 @@ public class ImportBooksCommand implements Command {
     private static final Logger log = LoggerFactory.getLogger(ImportBooksCommand.class);
 
     private final BookTsvReader reader;
-    private final BookRepository bookRepository;
 
     public ImportBooksCommand() {
-        this(new BookTsvReader(), new BookRepository());
+        this(new BookTsvReader());
     }
 
-    public ImportBooksCommand(BookTsvReader reader, BookRepository bookRepository) {
+    public ImportBooksCommand(BookTsvReader reader) {
         this.reader = reader;
-        this.bookRepository = bookRepository;
     }
 
     @Override
@@ -52,9 +50,9 @@ public class ImportBooksCommand implements Command {
 
         Path path = Path.of(argument);
 
-        try {
+        try (var bookPersistor = new BookPersistor()) {
             List<Book> books = reader.read(path);
-            bookRepository.saveAll(books);
+            bookPersistor.saveAll(books);
             log.info("{} Bücher aus {} importiert", books.size(), path);
             System.out.println(books.size() + " Buch/Bücher aus " + path + " importiert");
         } catch (NoSuchFileException e) {
@@ -66,6 +64,9 @@ public class ImportBooksCommand implements Command {
         } catch (IllegalArgumentException e) {
             log.error("Importdatei hat ein ungültiges Format: {}", path, e);
             System.out.println("Die Datei hat ein ungültiges Format: " + e.getMessage());
+        } catch (RuntimeException e) {
+            log.error("Bücher aus {} konnten nicht gespeichert werden", path, e);
+            System.out.println("Die Bücher konnten nicht gespeichert werden: " + e.getMessage());
         }
     }
 }
