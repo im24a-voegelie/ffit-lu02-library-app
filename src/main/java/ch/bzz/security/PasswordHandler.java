@@ -24,4 +24,10 @@ public final class PasswordHandler {
         md.update(salt);
         return md.digest(password.getBytes());
     }
+
+    public static boolean verifyPassword(String inputPassword, byte[] storedHash, byte[] storedSalt)
+            throws NoSuchAlgorithmException {
+        byte[] inputHash = hashPassword(inputPassword, storedSalt);
+        return MessageDigest.isEqual(inputHash, storedHash);
+    }
 }
