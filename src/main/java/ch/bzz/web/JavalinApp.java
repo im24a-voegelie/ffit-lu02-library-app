@@ -1,6 +1,7 @@
 package ch.bzz.web;
 
 import ch.bzz.model.User;
+import ch.bzz.persistence.BookPersistor;
 import ch.bzz.persistence.UserPersistor;
 import ch.bzz.security.JwtHandler;
 import ch.bzz.security.PasswordHandler;
@@ -30,12 +31,25 @@ public class JavalinApp {
 
     public static Javalin createApp() {
         UserPersistor userPersistor = new UserPersistor();
+        BookPersistor bookPersistor = new BookPersistor();
 
         Javalin app = Javalin.create();
         app.post("/auth/login", ctx -> login(ctx, userPersistor));
-        app.events(event -> event.serverStopping(userPersistor::close));
+        app.get("/books", ctx -> listBooks(ctx, bookPersistor));
+        app.events(event -> event.serverStopping(() -> {
+            userPersistor.close();
+            bookPersistor.close();
+        }));
 
         return app;
+    }
+
+    /**
+     * Liefert alle Bücher als JSON; mit {@code ?limit=n} höchstens n Bücher.
+     */
+    private static void listBooks(Context ctx, BookPersistor bookPersistor) {
+        int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(0);
+        ctx.json(bookPersistor.findAll(limit));
     }
 
     private static void login(Context ctx, UserPersistor userPersistor) {
